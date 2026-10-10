@@ -16,29 +16,40 @@ namespace render {
 	uint32_t* frame_buffer;
 
 	void update() {
-		for (const auto& triangle : triangles) {
 
-			for (size_t x = 0; x < width; ++x) {
-				double nx = x - width / 2.0;
+		for (size_t x = 0; x < width; ++x) {
+			double nx = x - width / 2.0;
 
-				for (size_t y = 0; y < height; ++y) {
-					double ny = height / 2.0 - y;
+			for (size_t y = 0; y < height; ++y) {
+				double ny = height / 2.0 - y;
 
-					Point R = { nx, ny, 1 };
+				Point R = { nx, ny, 1 };
 
+				double min_dist = 10'000.0;
+				Triangle* nearest = nullptr;
+
+				for (auto& triangle : triangles) {
 					double dist = triangle.distance_to_plane_eq(R);
+					
+					if (dist < 1'000.0) {
 
-					if (dist <= 1000.0) {
-						R.z = dist;
-
-						if (triangle.in_triangle_area(R)) {
-							double cos_NR = abs(1 - scalar_product(R, triangle.normal())
-								/ (vector_length(R) * vector_length(triangle.normal())));
-
-							frame_buffer[x + y * width] = RGB(cos_NR * 255, cos_NR * 255, cos_NR * 255);
+						if (min_dist > dist && triangle.in_triangle_area({ R.x, R.y, dist })) {
+							min_dist = dist;
+							nearest = &triangle;
 						}
-
 					}
+				}
+
+				if (min_dist < 1'000.0) {
+					R.z = min_dist;
+
+					const Point& norm = nearest->normal();
+					
+					// div to min_dist because R is not a vector from (0, 0, 0)
+					double cos_NR = abs(scalar_product(R, norm)
+						/ (min_dist * vector_length(norm)));
+
+					frame_buffer[x + y * width] = RGB(cos_NR * 255, cos_NR * 50, cos_NR * 70);
 				}
 			}
 		}
@@ -80,7 +91,7 @@ namespace render {
 			BITMAPINFO bmi = {};
 			bmi.bmiHeader.biSize = sizeof(BITMAPINFOHEADER);
 			bmi.bmiHeader.biWidth = width;
-			bmi.bmiHeader.biHeight = -(long long)height;
+			bmi.bmiHeader.biHeight = (long long)height;
 			bmi.bmiHeader.biPlanes = 1;
 			bmi.bmiHeader.biBitCount = 32;
 			bmi.bmiHeader.biCompression = BI_RGB;

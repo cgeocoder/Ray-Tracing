@@ -73,7 +73,8 @@ public:
 		double beta = delta2 / m_Delta;
 		double gamma = delta3 / m_Delta;
 
-		return (alpha >= 0) && (beta >= 0) && (gamma >= 0) && (alpha + beta + gamma == 1);
+		// double sum = alpha + beta + gamma;
+		return (alpha >= 0) && (beta >= 0) && (gamma >= 0); // && (0.8 <= sum && sum <= 1);
 	}
 
 	const Point& normal() const {

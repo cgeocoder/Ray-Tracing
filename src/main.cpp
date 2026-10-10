@@ -9,17 +9,18 @@ LRESULT CALLBACK WndProc(HWND, UINT, WPARAM, LPARAM);
 int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE h, LPSTR l, int nCmdShow) {
 	render::init_windows(hInstance, h, l, nCmdShow);
 
-	Triangle triangle({ -180, -180, 1 }, { 0, 30, 900 }, { 160, -130, 1 });
+	Triangle triangle1({ -180, -180, 1 }, { 0, 30, 900 }, { 160, -130, 1 });
+	Triangle triangle2({ -80, -80, 1 }, { 0, 30, 23 }, { 60, -30, 1 });
 
 	while (render::alive()) {
 		render::clear();
-		render::draw_triangle(triangle);
+		render::draw_triangle(triangle1);
+		render::draw_triangle(triangle2);
 		render::render();
 	}
 
 	return 0;
 }
-
 
 /*int main(int argc, char** argv) {
 	Triangle t({ -3, -3, 5 }, { 0, 3, 7 }, { 3, -3, 5 });

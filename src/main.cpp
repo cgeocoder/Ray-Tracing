@@ -3,27 +3,19 @@
 
 import draw;
 import render;
-
-LRESULT CALLBACK WndProc(HWND, UINT, WPARAM, LPARAM);
+import matrix;
 
 int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE h, LPSTR l, int nCmdShow) {
 	render::init_windows(hInstance, h, l, nCmdShow);
 
-	Point points[] = {
-		{ -80, -80, 1 },
-		{ -80, 80, 100 },
-		{ 80, 80, 100 },
-		{ 80, -80, 1 },
-	};
-
-	Triangle triangle1(points[0], points[1], points[2]);
-	Triangle triangle2(points[2], points[3], points[0]);
+	Sphere sphere1(1.0, {0.0, 0.0, 7.0}, Color(255, 255, 100));
+	Sphere sphere2(0.3, {0.1, -0.1, 4.0}, Color(255, 155, 100));
 
 	while (render::alive()) {
-
 		render::clear();
-		render::draw_triangle(triangle1);
-		render::draw_triangle(triangle2);
+		render::draw(&sphere1);
+		render::draw(&sphere2);
+		
 		render::render();
 	}
 

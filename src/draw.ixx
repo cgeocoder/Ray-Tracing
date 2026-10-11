@@ -1,8 +1,12 @@
 module;
 
 #include <cmath>
+#include <algorithm>
 
 export module draw;
+import matrix;
+
+export constexpr double PI = 3.14159265358979323846;
 
 export class Point {
 public:
@@ -31,53 +35,61 @@ export double scalar_product(const Point& _P1, const Point& _P2) {
 	return _P1.x * _P2.x + _P1.y * _P2.y + _P1.z * _P2.z;
 }
 
-export class Drawable {
+export class Color {
 public:
-
+	unsigned char r, g, b, a;
+	Color(unsigned char r, unsigned char g, unsigned char b) 
+		: r(r), g(g), b(b), a(255) {}
 };
 
-export class Triangle : public Drawable {
-private:
-	double A, B, C, D, m_Delta;
-	Point m_pA, m_pB, m_pC, m_vecN;
+export class Drawable {
+protected:
+	Point m_O;
+	Color m_Color;
 
 public:
-	Triangle() {};
+	Drawable(const Point& _Origin, const Color& _Color)
+		: m_O(_Origin), m_Color(_Color) {};
 
-	Triangle(const Point& _A, const Point& _B, const Point& _C) : m_pA(_A), m_pB(_B), m_pC(_C) {
-		A = (m_pB.y - m_pA.y) * (m_pC.z - m_pA.z) - (m_pB.z - m_pA.z) * (m_pC.y - m_pA.y);
-		B = (m_pB.z - m_pA.z) * (m_pC.x - m_pA.x) - (m_pB.x - m_pA.x) * (m_pC.z - m_pA.z);
-		C = (m_pB.x - m_pA.x) * (m_pC.y - m_pA.y) - (m_pB.y - m_pA.y) * (m_pC.x - m_pA.x);
-		D = -m_pA.x * A - m_pA.y * B - m_pA.z * C;
+	virtual double distance(const Vec3& _Ray) const = 0;
+	virtual Vec4 normal(const Vec3& _Ray) const = 0;
 
-		m_vecN = { A, B, C };
-		m_Delta = det3(m_pA, m_pB, m_pC);
+	const Color& color() const {
+		return m_Color;
 	}
+};
 
-	double distance_to_plane_eq(const Point& _Dir) const {
-		if (C == 0.0)
+export class Sphere : public Drawable {
+public:
+	double m_R;
+
+	Sphere(double _Radius, const Point& _Origin, const Color& _Color) 
+		: m_R(_Radius), Drawable(_Origin, _Color) {}
+
+	virtual double distance(const Vec3& _Ray) const override {
+		double a = _Ray.x * _Ray.x + _Ray.y * _Ray.y + _Ray.z * _Ray.z;
+		double b = -2.0 * (_Ray.x * m_O.x + _Ray.y * m_O.y + _Ray.z * m_O.z);
+		double c = m_O.x * m_O.x + m_O.y * m_O.y + m_O.z * m_O.z - m_R * m_R;
+
+		double D = b * b - 4.0 * a * c;
+
+		if (D < 0)
 			return -1.0;
 
-		// Ax + By + Cz + D = 0
-		// z = -(Ax + By + D) / C
+		double l1 = (-b + sqrt(D)) / (2.0 * a);
+		double l2 = (-b - sqrt(D)) / (2.0 * a);
 
-		return -(D + A * _Dir.x + B * _Dir.y) / C;
+		return std::min(l1, l2);
 	}
 
-	bool in_triangle_area(const Point& _P) const {
-		double delta1 = det3(_P, m_pB, m_pC);
-		double delta2 = det3(m_pA, _P, m_pC);
-		double delta3 = det3(m_pA, m_pB, _P);
+	virtual Vec4 normal(const Vec3& _Ray) const override {
+		double dist = distance(_Ray);
+		if (dist == -1.0)
+			return { 0.0, 0.0, 0.0, 0.0 };
 
-		double alpha = delta1 / m_Delta;
-		double beta = delta2 / m_Delta;
-		double gamma = delta3 / m_Delta;
-
-		// double sum = alpha + beta + gamma;
-		return (alpha >= 0) && (beta >= 0) && (gamma >= 0); // && (0.8 <= sum && sum <= 1);
-	}
-
-	const Point& normal() const {
-		return m_vecN;
+		Vec3 O = { m_O.x, m_O.y, m_O.z };
+		Vec3 n = _Ray * dist - O;
+		n = n * (1.0 / n.len());
+		return { n.x, n.y, n.z, 1.0 };
 	}
 };

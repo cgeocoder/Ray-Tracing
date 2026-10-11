@@ -5,51 +5,58 @@ module;
 
 export module render;
 import draw;
+import matrix;
 
 namespace render {
-
 	MSG msg = {};
-	std::vector<Triangle> triangles;
 	RECT client_rect;
 	size_t width;
 	size_t height;
 	uint32_t* frame_buffer;
+	std::vector<Drawable*> objects;
 
-	void update() {
+	export void update() {
+		double fi = -PI / 8.0;
+		double fi_step = 2.0 * abs(fi) / width;
 
-		for (size_t x = 0; x < width; ++x) {
+		for (size_t x = 0; x < width; ++x, fi += fi_step) {
+			double psi = PI / 10.0;
+			double psi_step = -2.0 * abs(psi) / height;
+
 			double nx = x - width / 2.0;
 
-			for (size_t y = 0; y < height; ++y) {
+			for (size_t y = 0; y < height; ++y, psi += psi_step) {
 				double ny = height / 2.0 - y;
 
-				Point R = { nx, ny, 1 };
+				Vec3 ray = { fi, psi, 1.0 };
+				ray = ray * (1.0 / ray.len());
 
-				double min_dist = 10'000.0;
-				Triangle* nearest = nullptr;
+				Vec4 draw_norm = {};
+				Drawable* draw_obj = nullptr;
+				double near_dist = 10'000.0;
 
-				for (auto& triangle : triangles) {
-					double dist = triangle.distance_to_plane_eq(R);
-					
-					if (dist < 1'000.0) {
+				for (const auto& obj : objects) {
+					double dist = obj->distance(ray);
 
-						if (min_dist > dist && triangle.in_triangle_area({ R.x, R.y, dist })) {
-							min_dist = dist;
-							nearest = &triangle;
+					if (near_dist > dist) {
+						Vec4 normal = obj->normal(ray);
+
+						if (normal.w == 1.0) {
+							draw_norm = normal;
+							near_dist = dist;
+							draw_obj = obj;
 						}
 					}
 				}
 
-				if (min_dist < 1'000.0) {
-					R.z = min_dist;
+				if (draw_obj) {
+					double cos_n_ay = abs(dot(ray, draw_norm));
 
-					const Point& norm = nearest->normal();
-					
-					// div to min_dist because R is not a vector from (0, 0, 0)
-					double cos_NR = abs(scalar_product(R, norm)
-						/ (min_dist * vector_length(norm)));
-
-					frame_buffer[x + y * width] = RGB(cos_NR * 255, cos_NR * 50, cos_NR * 70);
+					frame_buffer[x + y * width] = RGB(
+						draw_obj->color().r * cos_n_ay,
+						draw_obj->color().g * cos_n_ay,
+						draw_obj->color().b * cos_n_ay
+					);
 				}
 			}
 		}
@@ -91,7 +98,7 @@ namespace render {
 			BITMAPINFO bmi = {};
 			bmi.bmiHeader.biSize = sizeof(BITMAPINFOHEADER);
 			bmi.bmiHeader.biWidth = width;
-			bmi.bmiHeader.biHeight = (long long)height;
+			bmi.bmiHeader.biHeight = -(long long)height;
 			bmi.bmiHeader.biPlanes = 1;
 			bmi.bmiHeader.biBitCount = 32;
 			bmi.bmiHeader.biCompression = BI_RGB;
@@ -137,7 +144,7 @@ namespace render {
 				frame_buffer[i] = 0;
 		}
 
-		triangles.clear();
+		objects.clear();
 	}
 
 	export bool alive() {
@@ -150,7 +157,7 @@ namespace render {
 		DispatchMessage(&msg);
 	}
 
-	export void draw_triangle(const Triangle& _Object) {
-		triangles.push_back(_Object);
+	export void draw(Drawable* _Object) {
+		objects.push_back(_Object);
 	}
 }

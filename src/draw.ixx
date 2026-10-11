@@ -51,8 +51,8 @@ public:
 	Drawable(const Point& _Origin, const Color& _Color)
 		: m_O(_Origin), m_Color(_Color) {};
 
-	virtual double distance(const Vec3& _Ray) const = 0;
-	virtual Vec4 normal(const Vec3& _Ray) const = 0;
+	virtual double distance(const Vec3&) const = 0;
+	virtual Vec4 normal(const Vec3&, double) const = 0;
 
 	const Color& color() const {
 		return m_Color;
@@ -82,14 +82,14 @@ public:
 		return std::min(l1, l2);
 	}
 
-	virtual Vec4 normal(const Vec3& _Ray) const override {
-		double dist = distance(_Ray);
-		if (dist == -1.0)
+	virtual Vec4 normal(const Vec3& _Ray, double _Distance) const override {
+		if (_Distance == -1.0)
 			return { 0.0, 0.0, 0.0, 0.0 };
 
 		Vec3 O = { m_O.x, m_O.y, m_O.z };
-		Vec3 n = _Ray * dist - O;
+		Vec3 n = _Ray * _Distance - O;
 		n = n * (1.0 / n.len());
 		return { n.x, n.y, n.z, 1.0 };
 	}
 };
+

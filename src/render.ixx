@@ -39,7 +39,7 @@ namespace render {
 					double dist = obj->distance(ray);
 
 					if (near_dist > dist) {
-						Vec4 normal = obj->normal(ray);
+						Vec4 normal = obj->normal(ray, dist);
 
 						if (normal.w == 1.0) {
 							draw_norm = normal;

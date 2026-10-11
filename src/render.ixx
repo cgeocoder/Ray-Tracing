@@ -2,6 +2,7 @@ module;
 
 #include <windows.h>
 #include <vector>
+#include <memory>
 
 export module render;
 import draw;
@@ -13,7 +14,7 @@ namespace render {
 	size_t width;
 	size_t height;
 	uint32_t* frame_buffer;
-	std::vector<Drawable*> objects;
+	std::vector<std::shared_ptr<Drawable>> objects;
 
 	export void update() {
 		double fi = -PI / 8.0;
@@ -32,7 +33,7 @@ namespace render {
 				ray = ray * (1.0 / ray.len());
 
 				Vec4 draw_norm = {};
-				Drawable* draw_obj = nullptr;
+				std::shared_ptr<Drawable> draw_obj = nullptr;
 				double near_dist = 10'000.0;
 
 				for (const auto& obj : objects) {
@@ -133,7 +134,7 @@ namespace render {
 		RegisterClass(&wc);
 
 		HWND hwnd = CreateWindowEx(0, CLASS_NAME, L"Ray Tracing",
-			WS_OVERLAPPEDWINDOW, CW_USEDEFAULT, CW_USEDEFAULT, 900, 700,
+			WS_OVERLAPPEDWINDOW, CW_USEDEFAULT, CW_USEDEFAULT, 600, 500,
 			nullptr, nullptr, hInstance, nullptr);
 		ShowWindow(hwnd, nCmdShow);
 	}
@@ -157,7 +158,7 @@ namespace render {
 		DispatchMessage(&msg);
 	}
 
-	export void draw(Drawable* _Object) {
+	export void draw(std::shared_ptr<Drawable> _Object) {
 		objects.push_back(_Object);
 	}
 }

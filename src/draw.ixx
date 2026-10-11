@@ -57,6 +57,10 @@ public:
 	const Color& color() const {
 		return m_Color;
 	}
+
+	const Point& origin() const {
+		return m_O;
+	}
 };
 
 export class Sphere : public Drawable {

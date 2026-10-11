@@ -8,18 +8,20 @@ import matrix;
 int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE h, LPSTR l, int nCmdShow) {
 	render::init_windows(hInstance, h, l, nCmdShow);
 
-	Sphere sphere2(1.0, { 0.0, 0.5, 8.0 }, Color(255, 155, 100));
-	Sphere sphere3(1.0, { 0.5, -0.5, 9.0 }, Color(155, 255, 100));
+	Vec3 p = { 0.0, 0.5, 8.0 };
+	Vec3 rotate_around_origin = { 0.0, 0.0, 9.0 };
 
-	double d = 7.0;
+	Sphere sphere2(1.0, { 0.5, -0.5, 9.0 }, Color(155, 255, 100));
+
+	double angle = 0.0;
 	while (render::alive()) {
-		Sphere sphere1(1.0, { -0.5, -0.5, d }, Color(255, 255, 100));
-		d += 0.01;
+		Vec3 new_coord = rotate_x(angle += PI / 50.0) * (p - rotate_around_origin) + rotate_around_origin;
+
+		Sphere sphere1(1.0, Point(new_coord.x, new_coord.y, new_coord.z), Color(255, 155, 100));
 
 		render::clear();
-		render::draw(&sphere1);
-		render::draw(&sphere2);
-		render::draw(&sphere3);
+		render::draw(std::make_shared<Sphere>(sphere1));
+		render::draw(std::make_shared<Sphere>(sphere2));
 		
 		render::render();
 	}

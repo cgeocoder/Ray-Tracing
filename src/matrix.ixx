@@ -27,11 +27,11 @@ public:
 		z = _V4.z;
 	}
 
-	Vec3 operator-(const Vec3& _Right) {
+	Vec3 operator-(const Vec3& _Right) const {
 		return { x - _Right.x, y - _Right.y, z - _Right.z };
 	}
 
-	Vec3 operator+(const Vec3& _Right) {
+	Vec3 operator+(const Vec3& _Right) const {
 		return { x + _Right.x, y + _Right.y, z + _Right.z };
 	}
 

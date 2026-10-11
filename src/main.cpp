@@ -8,43 +8,32 @@ import matrix;
 int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE h, LPSTR l, int nCmdShow) {
 	render::init_windows(hInstance, h, l, nCmdShow);
 
-	Vec3 p = { 0.0, 0.5, 8.0 };
-	Vec3 rotate_around_origin = { 0.0, 0.0, 9.0 };
 
-	Sphere sphere2(1.0, { 0.5, -0.5, 9.0 }, Color(155, 255, 100));
+	Vec3 sun_pos = { 0.0, 0.0, 20.0 };
+	Sphere sun(2.0, { sun_pos.x, sun_pos.y, sun_pos.z }, Color(0, 255, 255));
+
+	Vec3 planet1_pos = { 0.0, 0.0, 25.0 };
+	Matrix3x3 planet1_rotation = rotate_y(PI / 200.0);
+
+	Matrix3x3 moon_rotation = rotate_y(PI / 50.0);
 
 	double angle = 0.0;
 	while (render::alive()) {
-		Vec3 new_coord = rotate_x(angle += PI / 50.0) * (p - rotate_around_origin) + rotate_around_origin;
+		planet1_pos = planet1_rotation * (planet1_pos - sun_pos) + sun_pos;
 
-		Sphere sphere1(1.0, Point(new_coord.x, new_coord.y, new_coord.z), Color(255, 155, 100));
+		Vec3 moon_pos = { planet1_pos.x, planet1_pos.y, planet1_pos.z + 4.0 };
+		moon_pos = moon_rotation * (moon_pos - planet1_pos) + planet1_pos;
+
+		Sphere sphere1(1.0, Point(planet1_pos.x, planet1_pos.y, planet1_pos.z), Color(255, 255, 0));
+		Sphere moon(1.0, Point(moon_pos.x, moon_pos.y, moon_pos.z), Color(255, 255, 255));
 
 		render::clear();
 		render::draw(std::make_shared<Sphere>(sphere1));
-		render::draw(std::make_shared<Sphere>(sphere2));
+		render::draw(std::make_shared<Sphere>(sun));
+		render::draw(std::make_shared<Sphere>(moon));
 		
 		render::render();
 	}
 
 	return 0;
 }  
-
-/*int main(int argc, char** argv) {
-	Triangle t({ -3, -3, 5 }, { 0, 3, 7 }, { 3, -3, 5 });
-
-	Point R = { 0, 0, 1 };
-
-	double dist = t.distance_to_plane_eq(R);
-
-	R.z = dist;
-
-	bool res = t.in_triangle_area(R);
-
-	if (res) {
-		double cos_NR = scalar_product(R, t.normal()) / (vector_length(R) * vector_length(t.normal()));
-
-		__debugbreak();
-	}
-
-	__debugbreak();
-}*/

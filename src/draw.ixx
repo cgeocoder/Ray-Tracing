@@ -2,6 +2,7 @@ module;
 
 #include <cmath>
 #include <algorithm>
+#include <windows.h>
 
 export module draw;
 import matrix;
@@ -31,15 +32,27 @@ export double vector_length(const Point& _P) {
 	return sqrt(_P.x * _P.x + _P.y * _P.y + _P.z * _P.z);
 }
 
+export double vector_length(const Vec3& _P) {
+	return sqrt(_P.x * _P.x + _P.y * _P.y + _P.z * _P.z);
+}
+
 export double scalar_product(const Point& _P1, const Point& _P2) {
 	return _P1.x * _P2.x + _P1.y * _P2.y + _P1.z * _P2.z;
 }
 
 export class Color {
 public:
-	unsigned char r, g, b, a;
-	Color(unsigned char r, unsigned char g, unsigned char b) 
-		: r(r), g(g), b(b), a(255) {}
+	double r, g, b, a;
+	Color(double r, double g, double b)
+		: r(r), g(g), b(b), a(1.0) {}
+
+	Color operator*(double _Scalar) const {
+		return {r * _Scalar, g * _Scalar, b * _Scalar };
+	}
+
+	inline auto get() const {
+		return RGB(r, g, b);
+	}
 };
 
 export class Drawable {
@@ -64,26 +77,31 @@ public:
 };
 
 export class Sphere : public Drawable {
+private:
+	double c;
+
 public:
 	double m_R;
 
 	Sphere(double _Radius, const Point& _Origin, const Color& _Color) 
-		: m_R(_Radius), Drawable(_Origin, _Color) {}
+		: m_R(_Radius), Drawable(_Origin, _Color) {
+		c = m_O.x * m_O.x + m_O.y * m_O.y + m_O.z * m_O.z - m_R * m_R;
+	}
 
 	virtual double distance(const Vec3& _Ray) const override {
-		double a = _Ray.x * _Ray.x + _Ray.y * _Ray.y + _Ray.z * _Ray.z;
+		double a2 = 2.0 * (_Ray.x * _Ray.x + _Ray.y * _Ray.y + _Ray.z * _Ray.z);
 		double b = -2.0 * (_Ray.x * m_O.x + _Ray.y * m_O.y + _Ray.z * m_O.z);
-		double c = m_O.x * m_O.x + m_O.y * m_O.y + m_O.z * m_O.z - m_R * m_R;
 
-		double D = b * b - 4.0 * a * c;
+		double D = b * b - 2.0 * a2 * c;
 
 		if (D < 0)
 			return -1.0;
 
-		double l1 = (-b + sqrt(D)) / (2.0 * a);
-		double l2 = (-b - sqrt(D)) / (2.0 * a);
+		double Dsrt = sqrt(D);
+		double l1 = (-b + Dsrt) / a2;
+		double l2 = (-b - Dsrt) / a2;
 
-		return std::min(l1, l2);
+		return min(l1, l2);
 	}
 
 	virtual Vec4 normal(const Vec3& _Ray, double _Distance) const override {

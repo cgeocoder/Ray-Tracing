@@ -14,27 +14,69 @@ namespace render {
 	size_t width;
 	size_t height;
 	uint32_t* frame_buffer;
-	std::vector<std::shared_ptr<Drawable>> objects;
+	std::vector<Drawable*> objects;
+
+	constexpr double x_angle = PI / 8.0 * 2;
+	constexpr double y_angle = PI / 8.0 * 2;
+
+	double start_x_agnel = -PI / 8.0;
+	double start_y_agnel = PI / 8.0;
+
+	double start_x_agnel_sin = -PI / 8.0;
+	double start_y_agnel_sin = PI / 8.0;
+
+	double start_x_agnel_total = PI / 8.0 * 2;
+	double start_y_agnel_total = PI / 8.0 * 2;
+
+	double start_y_agnel_total_sin = PI / 8.0 * 2;
+	double start_x_agnel_total_sin = PI / 8.0 * 2;
+
+	export void camera_rotate_x_left(double _Angle) {
+		start_x_agnel -= _Angle;
+
+		sin(start_x_agnel_sin + x_angle);
+		start_x_agnel_total_sin = sin(start_x_agnel + x_angle);
+	}
+
+	export void camera_rotate_x_right(double _Angle) {
+		start_x_agnel += _Angle;
+		start_x_agnel_sin = sin(start_x_agnel);
+		start_x_agnel_total_sin = sin(start_x_agnel + x_angle);
+	}
+
+	export void camera_rotate_y_up(double _Angle) {
+		start_y_agnel += _Angle;
+		start_y_agnel_sin = sin(start_y_agnel);
+		start_y_agnel_total_sin = sin(start_y_agnel + y_angle);
+	}
+
+	export void camera_rotate_y_down(double _Angle) {
+		start_y_agnel -= _Angle;
+		start_y_agnel_sin = sin(start_y_agnel);
+		start_y_agnel_total_sin = sin(start_y_agnel + y_angle);
+	}
 
 	export void update() {
-		double fi = -PI / 8.0;
-		double fi_step = 2.0 * abs(fi) / width;
+		double x_angle_sin = start_x_agnel_sin;
+		double la_step = (start_x_agnel_total_sin - start_x_agnel_sin) / width;
 
-		for (size_t x = 0; x < width; ++x, fi += fi_step) {
-			double psi = PI / 10.0;
-			double psi_step = -2.0 * abs(psi) / height;
+		// __debugbreak();
 
+		for (size_t x = 0; x < width; ++x, x_angle_sin += la_step) {
 			double nx = x - width / 2.0;
 
-			for (size_t y = 0; y < height; ++y, psi += psi_step) {
+			double y_angle_sin = start_y_agnel_sin;
+			double ta_step = -(start_y_agnel_total_sin - start_y_agnel_sin) / height;
+
+			for (size_t y = 0; y < height; ++y, y_angle_sin += ta_step) {
 				double ny = height / 2.0 - y;
 
-				Vec3 ray = { fi, psi, 1.0 };
+				Vec3 ray = { x_angle_sin, y_angle_sin, 1.0 };
 				ray = ray * (1.0 / ray.len());
 
 				Vec4 draw_norm = {};
-				std::shared_ptr<Drawable> draw_obj = nullptr;
-				double near_dist = 10'000.0;
+				Drawable* draw_obj = nullptr;
+				double near_dist = 100.0;
 
 				for (const auto& obj : objects) {
 					double dist = obj->distance(ray);
@@ -53,11 +95,7 @@ namespace render {
 				if (draw_obj) {
 					double cos_n_ay = abs(dot(ray, draw_norm));
 
-					frame_buffer[x + y * width] = RGB(
-						draw_obj->color().r * cos_n_ay,
-						draw_obj->color().g * cos_n_ay,
-						draw_obj->color().b * cos_n_ay
-					);
+					frame_buffer[x + y * width] = (draw_obj->color() * 255.0 * cos_n_ay).get();
 				}
 			}
 		}
@@ -158,7 +196,7 @@ namespace render {
 		DispatchMessage(&msg);
 	}
 
-	export void draw(std::shared_ptr<Drawable> _Object) {
+	export void draw(Drawable* _Object) {
 		objects.push_back(_Object);
 	}
 }

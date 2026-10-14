@@ -115,7 +115,7 @@ public:
 	}
 
 	virtual double distance(const Vec3& _Ray) const override {
-		double sprod = (m_A * _Ray.x + m_B * _Ray.y + m_C);
+		double sprod = (m_A * _Ray.x + m_B * _Ray.y + m_C * _Ray.z);
 
 		if (sprod != 0.0) {
 			return -m_D / sprod;

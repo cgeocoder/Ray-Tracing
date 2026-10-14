@@ -75,12 +75,12 @@ namespace render {
 
 				Vec3 draw_norm = {};
 				Drawable* draw_obj = nullptr;
-				double near_dist = 100.0;
+				double near_dist = 10'000.0;
 
 				for (const auto& obj : objects) {
 					double dist = obj->distance(ray);
 
-					if (near_dist > dist) {
+					if (dist >= 0.0 && near_dist > dist) {
 						Vec4 normal = obj->normal(ray, dist);
 						
 						if (normal.w == 1.0) {
@@ -93,6 +93,8 @@ namespace render {
 				
 				if (draw_obj) {
 					double cos_n_ay = abs(dot(ray, draw_norm));
+
+					// __debugbreak();
 
 					frame_buffer[x + y * width] = (draw_obj->color() * (255.0 * cos_n_ay)).get();
 				}

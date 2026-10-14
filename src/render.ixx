@@ -71,10 +71,9 @@ namespace render {
 			for (size_t y = 0; y < height; ++y, y_angle_sin += ta_step) {
 				double ny = height / 2.0 - y;
 
-				Vec3 ray = { x_angle_sin, y_angle_sin, 1.0 };
-				ray = ray * (1.0 / ray.len());
+				Vec3 ray = Vec3(x_angle_sin, y_angle_sin, 1.0).norm();
 
-				Vec4 draw_norm = {};
+				Vec3 draw_norm = {};
 				Drawable* draw_obj = nullptr;
 				double near_dist = 100.0;
 
@@ -83,7 +82,7 @@ namespace render {
 
 					if (near_dist > dist) {
 						Vec4 normal = obj->normal(ray, dist);
-
+						
 						if (normal.w == 1.0) {
 							draw_norm = normal;
 							near_dist = dist;
@@ -91,11 +90,11 @@ namespace render {
 						}
 					}
 				}
-
+				
 				if (draw_obj) {
 					double cos_n_ay = abs(dot(ray, draw_norm));
 
-					frame_buffer[x + y * width] = (draw_obj->color() * 255.0 * cos_n_ay).get();
+					frame_buffer[x + y * width] = (draw_obj->color() * (255.0 * cos_n_ay)).get();
 				}
 			}
 		}

@@ -9,34 +9,19 @@ import matrix;
 
 export constexpr double PI = 3.14159265358979323846;
 
-export class Point {
-public:
-	double x, y, z;
-	Point() : x(0.0), y(0.0), z(0.0) {}
-	Point(double x, double y, double z) : x(x), y(y), z(z) {}
-
-	Point operator*(double _Scalar) {
-		return { x * _Scalar, y * _Scalar, z * _Scalar };
-	}
-};
-
-export Point operator*(double _Scalar, const Point& _Point) {
-	return { _Point.x * _Scalar, _Point.y * _Scalar, _Point.z * _Scalar };
+export Vec3 operator*(double _Scalar, const Vec3& _Vec3) {
+	return { _Vec3.x * _Scalar, _Vec3.y * _Scalar, _Vec3.z * _Scalar };
 }
 
-export double det3(const Point& _A, const Point& _B, const Point& _C) {
+export double det3(const Vec3& _A, const Vec3& _B, const Vec3& _C) {
 	return _A.x * (_B.y * _C.z - _C.y * _B.z) - _B.x * (_A.y * _C.z - _C.y * _A.z) + _C.x * (_A.y * _B.z - _B.y * _A.z);
-}
-
-export double vector_length(const Point& _P) {
-	return sqrt(_P.x * _P.x + _P.y * _P.y + _P.z * _P.z);
 }
 
 export double vector_length(const Vec3& _P) {
 	return sqrt(_P.x * _P.x + _P.y * _P.y + _P.z * _P.z);
 }
 
-export double scalar_product(const Point& _P1, const Point& _P2) {
+export double scalar_product(const Vec3& _P1, const Vec3& _P2) {
 	return _P1.x * _P2.x + _P1.y * _P2.y + _P1.z * _P2.z;
 }
 
@@ -57,12 +42,12 @@ public:
 
 export class Drawable {
 protected:
-	Point m_O;
+	Vec3 m_Origin;
 	Color m_Color;
 
 public:
-	Drawable(const Point& _Origin, const Color& _Color)
-		: m_O(_Origin), m_Color(_Color) {};
+	Drawable(const Vec3& _Origin, const Color& _Color)
+		: m_Origin(_Origin), m_Color(_Color) {};
 
 	virtual double distance(const Vec3&) const = 0;
 	virtual Vec4 normal(const Vec3&, double) const = 0;
@@ -71,8 +56,8 @@ public:
 		return m_Color;
 	}
 
-	const Point& origin() const {
-		return m_O;
+	const Vec3& origin() const {
+		return m_Origin;
 	}
 };
 
@@ -83,14 +68,14 @@ private:
 public:
 	double m_R;
 
-	Sphere(double _Radius, const Point& _Origin, const Color& _Color) 
+	Sphere(double _Radius, const Vec3& _Origin, const Color& _Color) 
 		: m_R(_Radius), Drawable(_Origin, _Color) {
-		c = m_O.x * m_O.x + m_O.y * m_O.y + m_O.z * m_O.z - m_R * m_R;
+		c = dot(m_Origin, m_Origin) - m_R * m_R;
 	}
 
 	virtual double distance(const Vec3& _Ray) const override {
-		double a2 = 2.0 * (_Ray.x * _Ray.x + _Ray.y * _Ray.y + _Ray.z * _Ray.z);
-		double b = -2.0 * (_Ray.x * m_O.x + _Ray.y * m_O.y + _Ray.z * m_O.z);
+		double a2 = 2.0 * dot(_Ray, _Ray);
+		double b = -2.0 * dot(_Ray, m_Origin);
 
 		double D = b * b - 2.0 * a2 * c;
 
@@ -108,10 +93,41 @@ public:
 		if (_Distance == -1.0)
 			return { 0.0, 0.0, 0.0, 0.0 };
 
-		Vec3 O = { m_O.x, m_O.y, m_O.z };
-		Vec3 n = _Ray * _Distance - O;
-		n = n * (1.0 / n.len());
-		return { n.x, n.y, n.z, 1.0 };
+		return (_Ray * _Distance - m_Origin).norm();
 	}
 };
 
+export class Plane : public Drawable {
+private:
+	double m_A, m_B, m_C, m_D;
+	Vec3 m_Norm;
+
+public:
+	Plane(const Vec3& _P1, const Vec3& _P2, const Vec3& _P3, const Vec3& _Origin, const Color& _Color)
+		: Drawable(_Origin, _Color) {
+
+		m_A = (_P2.y - _P1.y) * (_P3.z - _P1.z) - (_P2.z - _P1.z) * (_P3.y - _P1.y);
+		m_B = (_P2.z - _P1.z) * (_P3.x - _P1.x) - (_P2.x - _P1.x) * (_P3.z - _P1.z);
+		m_C = (_P2.x - _P1.x) * (_P3.y - _P1.y) - (_P2.y - _P1.y) * (_P3.x - _P1.x);
+		m_D = -(_P1.x * m_A + _P1.y * m_B + _P1.z * m_C);
+
+		m_Norm = Vec3(m_A, m_B, m_C).norm();
+	}
+
+	virtual double distance(const Vec3& _Ray) const override {
+		double sprod = (m_A * _Ray.x + m_B * _Ray.y + m_C);
+
+		if (sprod != 0.0) {
+			return -m_D / sprod;
+		}
+
+		return -1.0;
+	}
+
+	virtual Vec4 normal(const Vec3& _Ray, double _Distance) const override {
+		if (_Distance == -1.0)
+			return { 0.0, 0.0, 0.0, 0.0 };
+
+		return (Vec4)m_Norm;
+	}
+};

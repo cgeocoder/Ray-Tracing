@@ -7,65 +7,75 @@ export module matrix;
 export class Vec4 {
 public:
 	double x, y, z, w;
+
+	inline Vec4() {}
+	inline Vec4(const Vec4& _Copy) {
+		x = _Copy.x;
+		y = _Copy.y;
+		z = _Copy.z;
+		w = _Copy.w;
+	}
+
+	inline Vec4(double X, double Y, double Z, double W) {
+		x = X;
+		y = Y;
+		z = Z;
+		w = W;
+	}
 };
 
 export class Vec3 {
 public:
 	double x, y, z;
 
-	Vec3() {}
+	inline Vec3() {}
 
-	Vec3(double X, double Y, double Z) {
+	inline Vec3(double X, double Y, double Z) {
 		x = X;
 		y = Y;
 		z = Z;
 	}
 
-	Vec3(const Vec4& _V4) {
+	inline Vec3(const Vec4& _V4) {
 		x = _V4.x;
 		y = _V4.y;
 		z = _V4.z;
 	}
 
-	Vec3 operator-(const Vec3& _Right) const {
+	inline Vec3 operator-(const Vec3& _Right) const {
 		return { x - _Right.x, y - _Right.y, z - _Right.z };
 	}
 
-	Vec3 operator+(const Vec3& _Right) const {
+	inline Vec3 operator+(const Vec3& _Right) const {
 		return { x + _Right.x, y + _Right.y, z + _Right.z };
 	}
 
-	Vec3 operator*(double _Right) {
+	inline Vec3 operator*(double _Right) {
 		return { x * _Right, y * _Right, z * _Right };
 	}
 
-	Vec3 operator*(double _Right) const {
+	inline Vec3 operator*(double _Right) const {
 		return { x * _Right, y * _Right, z * _Right };
 	}
 
-	double len() {
+	inline double len() const {
 		return sqrt(x * x + y * y + z * z);
+	}
+
+	inline Vec3 norm() const {
+		return (*this) * (1.0 / len());
+	}
+
+	operator Vec4() const {
+		return Vec4(x, y, z, 1.0);
 	}
 };
 
-export Vec3 normalize(const Vec3& _Vec) {
-	double l = sqrt(_Vec.x * _Vec.x + _Vec.y * _Vec.y + _Vec.z * _Vec.z);
-	if (l == 0.0)
-		return _Vec;
-
-	return { _Vec.x / l, _Vec.y / l, _Vec.z / l };
-}
-
-export Vec4 normalize(const Vec4& _Vec) {
-	double l = sqrt(_Vec.x * _Vec.x + _Vec.y * _Vec.y + _Vec.z * _Vec.z + _Vec.w * _Vec.w);
-	return { _Vec.x / l, _Vec.y / l, _Vec.z / l, _Vec.w / l };
-}
-
-export Vec3 cross(const Vec3& _V1, const Vec3& _V2) {
+export inline Vec3 cross(const Vec3& _V1, const Vec3& _V2) {
 	return { _V1.y * _V2.z - _V1.z * _V2.y, -_V1.x * _V2.z + _V1.z * _V2.x, _V1.x * _V2.y - _V1.y * _V2.x };
 }
 
-export double dot(const Vec3& _V1, const Vec3& _V2) {
+export inline double dot(const Vec3& _V1, const Vec3& _V2) {
 	return _V1.x * _V2.x + _V1.y * _V2.y + _V1.z * _V2.z;
 }
 
@@ -82,7 +92,7 @@ public:
 	}
 
 	// no validation!!!
-	double& operator()(int x, int y) {
+	inline double& operator()(int x, int y) {
 		return m_Data[x][y];
 	}
 

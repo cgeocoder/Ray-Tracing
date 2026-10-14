@@ -42,9 +42,10 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE h, LPSTR l, int nCmdShow) {
 
 	Vec3 moon_pos = { planet1_pos.x, planet1_pos.y, planet1_pos.z + 1.5 };
 
-
 	render::camera_rotate_x_right(0);
 	render::camera_rotate_y_down(0);
+
+	Plane plane({ -1, -2, -2 }, { 0, -2, 2 }, { 1, -2, -2 }, {0, 0, 0}, Color(0.1, 0.1, 0.1));
 
 	while (render::alive()) {
 		Vec3 last_planet1_pos = planet1_pos;
@@ -57,16 +58,17 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE h, LPSTR l, int nCmdShow) {
 		// rotate + offset
 		moon_pos = rotate_around_xy(moon_pos, planet1_pos, -PI / 1000.0, PI / 70.0) + (planet1_pos - last_planet1_pos);
 
-		Sphere sun(2.0, { sun_pos.x, sun_pos.y, sun_pos.z }, Color(0, 1, 1));
-		Sphere sphere1(1.0, Point(planet1_pos.x, planet1_pos.y, planet1_pos.z), Color(1, 1, 0));
-		Sphere sphere2(0.6, Point(planet2_pos.x, planet2_pos.y, planet2_pos.z), Color(0.2, 1, 0));
-		Sphere moon(0.2, Point(moon_pos.x, moon_pos.y, moon_pos.z), Color(1, 1, 1));
+		Sphere sun(2.0, sun_pos, Color(0, 1, 1));
+		Sphere sphere1(1.0, planet1_pos, Color(1, 1, 0));
+		Sphere sphere2(0.6, planet2_pos, Color(0.2, 1, 0));
+		Sphere moon(0.2, moon_pos, Color(1, 1, 1));
 
 		render::clear();
-		render::draw(&sphere1);
-		render::draw(&sphere2);
-		render::draw(&sun);
-		render::draw(&moon);
+		render::draw(&plane);
+		// render::draw(&sphere1);
+		// render::draw(&sphere2);
+		// render::draw(&sun);
+		// render::draw(&moon);
 		
 		render::render();
 	}

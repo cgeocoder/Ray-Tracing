@@ -41,11 +41,8 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE h, LPSTR l, int nCmdShow) {
 	Vec3 planet2_pos = { 0.0, 0.0, 23.0 };
 	
 	Vec3 moon_pos = { planet1_pos.x, planet1_pos.y, planet1_pos.z + 1.5 };
-
-	render::camera_rotate_x_right(0);
-	render::camera_rotate_y_down(0.05);
 	
-	Plane plane({ -1, -10, -1 }, { 0, -9.4, 1 }, { 1, -10, -1 }, {0, 0, 0}, Color(1, 0, 1));
+	Plane plane({ -1, -10, -1 }, { 0, -9.9, 1 }, { 1, -10, -1 }, {0, 0, 0}, Color(1, 0, 1));
 	
 	while (render::alive()) {
 		Vec3 last_planet1_pos = planet1_pos;

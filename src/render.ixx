@@ -11,26 +11,32 @@ import matrix;
 namespace render {
 	MSG msg = {};
 	RECT client_rect;
-	size_t width;
-	size_t height;
+	long width, height;
 	uint32_t* frame_buffer;
 	std::vector<Drawable*> objects;
 
-	export void update() {
-		constexpr double z_cam = 900.0;
+	constexpr double z_cam = 900.0;
 
-		double part_w = width / 2.0;
+	double part_w, sin_a;
+	double horizontal_angle_step;
+	double part_h, sin_b;
+	double vertical_angle_step;
+
+	void update_screen_param(long new_width, long new_height) {
+		part_w = new_width / 2.0;
 		double l = sqrt(part_w * part_w + z_cam * z_cam);
-		double sin_a = -part_w / l;
+		sin_a = -part_w / l;
 
-		double horizontal_angle_step = -2.0 * sin_a / width;
+		horizontal_angle_step = -2.0 * sin_a / new_width;
 
-		double part_h = height / 2.0;
+		part_h = new_height / 2.0;
 		double t = sqrt(part_h * part_h + z_cam * z_cam);
-		double sin_b = part_h / t;
+		sin_b = part_h / t;
 
-		double vertical_angle_step = -2.0 * sin_b / height;
+		vertical_angle_step = -2.0 * sin_b / new_height;
+	}
 
+	export void update() {
 		double horizontal_angle = sin_a;
 		for (size_t x = 0; x < width; ++x, horizontal_angle += horizontal_angle_step) {
 			double nx = x - part_w;
@@ -77,7 +83,8 @@ namespace render {
 		case WM_TIMER:
 			InvalidateRect(hwnd, nullptr, TRUE);
 			return 0;
-		case WM_PAINT: {
+
+		case WM_SIZE: {
 			int old_width = width, old_height = height;
 
 			client_rect;
@@ -86,12 +93,17 @@ namespace render {
 			height = client_rect.bottom - client_rect.top;
 
 			if (old_width != width || old_height != height) {
+				update_screen_param(width, height);
+
 				if (frame_buffer)
 					delete[] frame_buffer;
 
 				frame_buffer = new uint32_t[width * height + 1];
 			}
 
+			break;
+		}
+		case WM_PAINT: {
 			update();
 
 			PAINTSTRUCT ps;
